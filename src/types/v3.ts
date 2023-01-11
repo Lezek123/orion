@@ -420,7 +420,7 @@ export interface PendingTransfer {
   transferParams: TransferCommitmentParameters
 }
 
-export type WorkingGroup = WorkingGroup_Forum | WorkingGroup_Storage | WorkingGroup_Content | WorkingGroup_OperationsAlpha | WorkingGroup_App | WorkingGroup_Distribution | WorkingGroup_OperationsBeta | WorkingGroup_OperationsGamma | WorkingGroup_Membership
+export type WorkingGroup = WorkingGroup_Forum | WorkingGroup_Storage | WorkingGroup_Content | WorkingGroup_OperationsAlpha | WorkingGroup_Gateway | WorkingGroup_Distribution | WorkingGroup_OperationsBeta | WorkingGroup_OperationsGamma | WorkingGroup_Membership
 
 export interface WorkingGroup_Forum {
   __kind: 'Forum'
@@ -438,8 +438,8 @@ export interface WorkingGroup_OperationsAlpha {
   __kind: 'OperationsAlpha'
 }
 
-export interface WorkingGroup_App {
-  __kind: 'App'
+export interface WorkingGroup_Gateway {
+  __kind: 'Gateway'
 }
 
 export interface WorkingGroup_Distribution {

@@ -19,7 +19,7 @@ import {
   DistributionBucketIdRecord,
   DynamicBagIdType,
   StaticBagId,
-} from '../../types/v1000'
+} from '../../types/v3'
 import { bytesToString } from '../utils'
 import { criticalError } from '../../utils/misc'
 import { EntitiesCollector } from '../../utils/EntitiesCollector'

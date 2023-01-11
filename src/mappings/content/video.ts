@@ -11,7 +11,7 @@ export async function processVideoCreatedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [contentActor, channelId, contentId, contentCreationParameters, newDataObjectIds],
+    asV3: [contentActor, channelId, contentId, contentCreationParameters, newDataObjectIds],
   },
 }: EventHandlerContext<'Content.VideoCreated'>): Promise<void> {
   const { meta, expectedVideoStateBloatBond, autoIssueNft } = contentCreationParameters
@@ -56,7 +56,7 @@ export async function processVideoUpdatedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [contentActor, contentId, contentUpdateParameters, newDataObjectIds],
+    asV3: [contentActor, contentId, contentUpdateParameters, newDataObjectIds],
   },
 }: EventHandlerContext<'Content.VideoUpdated'>): Promise<void> {
   const { newMeta, autoIssueNft } = contentUpdateParameters
@@ -95,7 +95,7 @@ export async function processVideoUpdatedEvent({
 export async function processVideoDeletedEvent({
   ec,
   event: {
-    asV1000: [, contentId],
+    asV3: [, contentId],
   },
 }: EventHandlerContext<'Content.VideoDeleted'>): Promise<void> {
   await deleteVideo(ec, contentId)
@@ -104,7 +104,7 @@ export async function processVideoDeletedEvent({
 export async function processVideoDeletedByModeratorEvent({
   ec,
   event: {
-    asV1000: [, contentId],
+    asV3: [, contentId],
   },
 }: EventHandlerContext<'Content.VideoDeletedByModerator'>): Promise<void> {
   await deleteVideo(ec, contentId)
@@ -113,7 +113,7 @@ export async function processVideoDeletedByModeratorEvent({
 export async function processVideoVisibilitySetByModeratorEvent({
   ec,
   event: {
-    asV1000: [, videoId, isCensored],
+    asV3: [, videoId, isCensored],
   },
 }: EventHandlerContext<'Content.VideoVisibilitySetByModerator'>): Promise<void> {
   const video = await ec.collections.Video.getOrFail(videoId.toString())

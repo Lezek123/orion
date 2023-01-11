@@ -18,7 +18,7 @@ export async function processChannelCreatedEvent({
   ec,
   block,
   event: {
-    asV1000: [
+    asV3: [
       channelId,
       { owner, dataObjects, channelStateBloatBond },
       channelCreationParameters,
@@ -53,7 +53,7 @@ export async function processChannelUpdatedEvent({
   ec,
   block,
   event: {
-    asV1000: [, channelId, channelUpdateParameters, newDataObjects],
+    asV3: [, channelId, channelUpdateParameters, newDataObjects],
   },
 }: EventHandlerContext<'Content.ChannelUpdated'>) {
   const channel = await ec.collections.Channel.getOrFail(channelId.toString(), {
@@ -70,7 +70,7 @@ export async function processChannelUpdatedEvent({
 
 export async function processChannelDeletedEvent({
   ec,
-  event: { asV1000: channelId },
+  event: { asV3: channelId },
 }: EventHandlerContext<'Content.ChannelDeleted'>): Promise<void> {
   ec.collections.Channel.remove(new Channel({ id: channelId.toString() }))
 }
@@ -78,7 +78,7 @@ export async function processChannelDeletedEvent({
 export async function processChannelDeletedByModeratorEvent({
   ec,
   event: {
-    asV1000: [, channelId],
+    asV3: [, channelId],
   },
 }: EventHandlerContext<'Content.ChannelDeletedByModerator'>): Promise<void> {
   ec.collections.Channel.remove(new Channel({ id: channelId.toString() }))
@@ -87,7 +87,7 @@ export async function processChannelDeletedByModeratorEvent({
 export async function processChannelVisibilitySetByModeratorEvent({
   ec,
   event: {
-    asV1000: [, channelId, isHidden],
+    asV3: [, channelId, isHidden],
   },
 }: EventHandlerContext<'Content.ChannelVisibilitySetByModerator'>): Promise<void> {
   const channel = await ec.collections.Channel.getOrFail(channelId.toString())
@@ -100,7 +100,7 @@ export async function processChannelOwnerRemarkedEvent({
   extrinsicHash,
   ec,
   event: {
-    asV1000: [channelId, messageBytes],
+    asV3: [channelId, messageBytes],
   },
 }: EventHandlerContext<'Content.ChannelOwnerRemarked'>): Promise<void> {
   const channel = await ec.collections.Channel.getOrFail(channelId.toString())
@@ -127,7 +127,7 @@ export async function processChannelAgentRemarkedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [, channelId, messageBytes],
+    asV3: [, channelId, messageBytes],
   },
 }: EventHandlerContext<'Content.ChannelAgentRemarked'>): Promise<void> {
   const channel = await ec.collections.Channel.getOrFail(channelId.toString())

@@ -38,7 +38,7 @@ export async function processOpenAuctionStartedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [contentActor, videoId, auctionParams],
+    asV3: [contentActor, videoId, auctionParams],
   },
 }: EventHandlerContext<'Content.OpenAuctionStarted'>): Promise<void> {
   // load the nft
@@ -70,7 +70,7 @@ export async function processEnglishAuctionStartedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [contentActor, videoId, auctionParams],
+    asV3: [contentActor, videoId, auctionParams],
   },
 }: EventHandlerContext<'Content.EnglishAuctionStarted'>): Promise<void> {
   // load nft
@@ -102,7 +102,7 @@ export async function processNftIssuedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [actor, videoId, nftIssuanceParameters],
+    asV3: [actor, videoId, nftIssuanceParameters],
   },
 }: EventHandlerContext<'Content.NftIssued'>): Promise<void> {
   // load video
@@ -120,7 +120,7 @@ export async function processAuctionBidMadeEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [memberId, videoId, bidAmount],
+    asV3: [memberId, videoId, bidAmount],
   },
 }: EventHandlerContext<'Content.AuctionBidMade'>): Promise<void> {
   // create a new bid
@@ -160,7 +160,7 @@ export async function processAuctionBidCanceledEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [memberId, videoId],
+    asV3: [memberId, videoId],
   },
 }: EventHandlerContext<'Content.AuctionBidCanceled'>): Promise<void> {
   const bid = await ec.collections.Bid.getOrFailWhere(
@@ -213,7 +213,7 @@ export async function processAuctionCanceledEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [contentActor, videoId],
+    asV3: [contentActor, videoId],
   },
 }: EventHandlerContext<'Content.AuctionCanceled'>): Promise<void> {
   // load video and auction
@@ -242,7 +242,7 @@ export async function processEnglishAuctionSettledEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [winnerId, , videoId],
+    asV3: [winnerId, , videoId],
   },
 }: EventHandlerContext<'Content.EnglishAuctionSettled'>): Promise<void> {
   // finish auction
@@ -282,7 +282,7 @@ export async function processBidMadeCompletingAuctionEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [memberId, videoId],
+    asV3: [memberId, videoId],
   },
 }: EventHandlerContext<'Content.BidMadeCompletingAuction'>): Promise<void> {
   // create record for winning bid
@@ -317,7 +317,7 @@ export async function processOpenAuctionBidAcceptedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [contentActor, videoId, winnerId, bidAmount],
+    asV3: [contentActor, videoId, winnerId, bidAmount],
   },
 }: EventHandlerContext<'Content.OpenAuctionBidAccepted'>): Promise<void> {
   // finish auction
@@ -351,7 +351,7 @@ export async function processOpenAuctionBidAcceptedEvent({
 export async function processOfferStartedEvent({
   ec,
   event: {
-    asV1000: [videoId, , memberId, price],
+    asV3: [videoId, , memberId, price],
   },
 }: EventHandlerContext<'Content.OfferStarted'>): Promise<void> {
   // load NFT
@@ -370,7 +370,7 @@ export async function processOfferStartedEvent({
 export async function processOfferAcceptedEvent({
   ec,
   block,
-  event: { asV1000: videoId },
+  event: { asV3: videoId },
 }: EventHandlerContext<'Content.OfferAccepted'>): Promise<void> {
   // load NFT
   const nft = await ec.collections.OwnedNft.getOrFail(videoId.toString())
@@ -396,7 +396,7 @@ export async function processOfferAcceptedEvent({
 export async function processOfferCanceledEvent({
   ec,
   event: {
-    asV1000: [videoId],
+    asV3: [videoId],
   },
 }: EventHandlerContext<'Content.OfferCanceled'>): Promise<void> {
   // load NFT
@@ -414,7 +414,7 @@ export async function processNftSellOrderMadeEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [videoId, contentActor, price],
+    asV3: [videoId, contentActor, price],
   },
 }: EventHandlerContext<'Content.NftSellOrderMade'>): Promise<void> {
   // load NFT
@@ -443,7 +443,7 @@ export async function processNftSellOrderMadeEvent({
 export async function processNftBoughtEvent({
   ec,
   event: {
-    asV1000: [videoId, memberId],
+    asV3: [videoId, memberId],
   },
   block,
   indexInBlock,
@@ -485,7 +485,7 @@ export async function processBuyNowCanceledEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [videoId, contentActor],
+    asV3: [videoId, contentActor],
   },
 }: EventHandlerContext<'Content.BuyNowCanceled'>): Promise<void> {
   // load NFT
@@ -513,7 +513,7 @@ export async function processBuyNowPriceUpdatedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [videoId, contentActor, newPrice],
+    asV3: [videoId, contentActor, newPrice],
   },
 }: EventHandlerContext<'Content.BuyNowPriceUpdated'>): Promise<void> {
   // load NFT
@@ -544,7 +544,7 @@ export async function processBuyNowPriceUpdatedEvent({
 export async function processNftSlingedBackToTheOriginalArtistEvent({
   ec,
   event: {
-    asV1000: [videoId],
+    asV3: [videoId],
   },
 }: EventHandlerContext<'Content.NftSlingedBackToTheOriginalArtist'>): Promise<void> {
   const nft = await ec.collections.OwnedNft.getOrFail(videoId.toString(), {

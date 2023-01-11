@@ -40,7 +40,7 @@ import {
 export function processStorageBucketCreatedEvent({
   ec,
   event: {
-    asV1000: [
+    asV3: [
       bucketId,
       invitedWorkerId,
       acceptingNewBags,
@@ -70,7 +70,7 @@ export function processStorageBucketCreatedEvent({
 export async function processStorageOperatorMetadataSetEvent({
   ec,
   event: {
-    asV1000: [bucketId, , metadataBytes],
+    asV3: [bucketId, , metadataBytes],
   },
 }: EventHandlerContext<'Storage.StorageOperatorMetadataSet'>): Promise<void> {
   const storageBucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString(), {
@@ -85,7 +85,7 @@ export async function processStorageOperatorMetadataSetEvent({
 export async function processStorageBucketStatusUpdatedEvent({
   ec,
   event: {
-    asV1000: [bucketId, acceptingNewBags],
+    asV3: [bucketId, acceptingNewBags],
   },
 }: EventHandlerContext<'Storage.StorageBucketStatusUpdated'>): Promise<void> {
   const storageBucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString())
@@ -95,7 +95,7 @@ export async function processStorageBucketStatusUpdatedEvent({
 export async function processStorageBucketInvitationAcceptedEvent({
   ec,
   event: {
-    asV1000: [bucketId, workerId, transactorAccountId],
+    asV3: [bucketId, workerId, transactorAccountId],
   },
 }: EventHandlerContext<'Storage.StorageBucketInvitationAccepted'>): Promise<void> {
   const storageBucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString())
@@ -107,7 +107,7 @@ export async function processStorageBucketInvitationAcceptedEvent({
 
 export async function processStorageBucketInvitationCancelledEvent({
   ec,
-  event: { asV1000: bucketId },
+  event: { asV3: bucketId },
 }: EventHandlerContext<'Storage.StorageBucketInvitationCancelled'>): Promise<void> {
   // Metadata should not exist, because the operator wasn't active
   const storageBucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString())
@@ -117,7 +117,7 @@ export async function processStorageBucketInvitationCancelledEvent({
 export async function processStorageBucketOperatorInvitedEvent({
   ec,
   event: {
-    asV1000: [bucketId, workerId],
+    asV3: [bucketId, workerId],
   },
 }: EventHandlerContext<'Storage.StorageBucketOperatorInvited'>): Promise<void> {
   const storageBucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString())
@@ -128,7 +128,7 @@ export async function processStorageBucketOperatorInvitedEvent({
 
 export async function processStorageBucketOperatorRemovedEvent({
   ec,
-  event: { asV1000: bucketId },
+  event: { asV3: bucketId },
 }: EventHandlerContext<'Storage.StorageBucketOperatorRemoved'>): Promise<void> {
   const storageBucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString(), {
     operatorMetadata: true,
@@ -142,7 +142,7 @@ export async function processStorageBucketOperatorRemovedEvent({
 export async function processStorageBucketsUpdatedForBagEvent({
   ec,
   event: {
-    asV1000: [bagId, addedBuckets, removedBuckets],
+    asV3: [bagId, addedBuckets, removedBuckets],
   },
 }: EventHandlerContext<'Storage.StorageBucketsUpdatedForBag'>): Promise<void> {
   await getOrCreateBag(ec, bagId)
@@ -159,7 +159,7 @@ export async function processStorageBucketsUpdatedForBagEvent({
 export async function processVoucherChangedEvent({
   ec,
   event: {
-    asV1000: [bucketId, voucher],
+    asV3: [bucketId, voucher],
   },
 }: EventHandlerContext<'Storage.VoucherChanged'>): Promise<void> {
   const bucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString())
@@ -173,7 +173,7 @@ export async function processVoucherChangedEvent({
 export async function processStorageBucketVoucherLimitsSetEvent({
   ec,
   event: {
-    asV1000: [bucketId, sizeLimit, countLimit],
+    asV3: [bucketId, sizeLimit, countLimit],
   },
 }: EventHandlerContext<'Storage.StorageBucketVoucherLimitsSet'>): Promise<void> {
   const bucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString())
@@ -183,7 +183,7 @@ export async function processStorageBucketVoucherLimitsSetEvent({
 
 export async function processStorageBucketDeletedEvent({
   ec,
-  event: { asV1000: bucketId },
+  event: { asV3: bucketId },
 }: EventHandlerContext<'Storage.StorageBucketDeleted'>): Promise<void> {
   const storageBucket = await ec.collections.StorageBucket.getOrFail(bucketId.toString(), {
     bags: true,
@@ -204,7 +204,7 @@ export function processDynamicBagCreatedEvent({
   ec,
   block,
   event: {
-    asV1000: [
+    asV3: [
       {
         bagId,
         storageBuckets,
@@ -239,7 +239,7 @@ export function processDynamicBagCreatedEvent({
 
 export async function processDynamicBagDeletedEvent({
   ec,
-  event: { asV1000: bagId },
+  event: { asV3: bagId },
 }: EventHandlerContext<'Storage.DynamicBagDeleted'>): Promise<void> {
   const storageBag = await ec.collections.StorageBag.getOrFail(getDynamicBagId(bagId), {
     storageBuckets: true,
@@ -264,7 +264,7 @@ export async function processDataObjectsUploadedEvent({
   ec,
   block,
   event: {
-    asV1000: [objectIds, { bagId, objectCreationList }, stateBloatBond],
+    asV3: [objectIds, { bagId, objectCreationList }, stateBloatBond],
   },
 }: EventHandlerContext<'Storage.DataObjectsUploaded'>) {
   const bag = await getOrCreateBag(ec, bagId)
@@ -276,7 +276,7 @@ export async function processDataObjectsUpdatedEvent({
   ec,
   block,
   event: {
-    asV1000: [
+    asV3: [
       { bagId, objectCreationList, expectedDataObjectStateBloatBond: stateBloatBond },
       uploadedObjectIds,
       objectsToRemoveIds,
@@ -298,7 +298,7 @@ export async function processDataObjectsUpdatedEvent({
 export async function processPendingDataObjectsAcceptedEvent({
   ec,
   event: {
-    asV1000: [, , , dataObjectIds],
+    asV3: [, , , dataObjectIds],
   },
 }: EventHandlerContext<'Storage.PendingDataObjectsAccepted'>): Promise<void> {
   const objects = await Promise.all(
@@ -310,7 +310,7 @@ export async function processPendingDataObjectsAcceptedEvent({
 export async function processDataObjectsMovedEvent({
   ec,
   event: {
-    asV1000: [, destBagId, dataObjectIds],
+    asV3: [, destBagId, dataObjectIds],
   },
 }: EventHandlerContext<'Storage.DataObjectsMoved'>): Promise<void> {
   const destBag = await getOrCreateBag(ec, destBagId)
@@ -325,7 +325,7 @@ export async function processDataObjectsMovedEvent({
 export async function processDataObjectsDeletedEvent({
   ec,
   event: {
-    asV1000: [, , dataObjectIds],
+    asV3: [, , dataObjectIds],
   },
 }: EventHandlerContext<'Storage.DataObjectsDeleted'>): Promise<void> {
   await deleteDataObjectsByIds(ec, dataObjectIds)
@@ -335,7 +335,7 @@ export async function processDataObjectsDeletedEvent({
 
 export async function processDistributionBucketFamilyCreatedEvent({
   ec,
-  event: { asV1000: familyId },
+  event: { asV3: familyId },
 }: EventHandlerContext<'Storage.DistributionBucketFamilyCreated'>): Promise<void> {
   const family = new DistributionBucketFamily({
     id: familyId.toString(),
@@ -346,7 +346,7 @@ export async function processDistributionBucketFamilyCreatedEvent({
 export async function processDistributionBucketFamilyMetadataSetEvent({
   ec,
   event: {
-    asV1000: [familyId, metadataBytes],
+    asV3: [familyId, metadataBytes],
   },
 }: EventHandlerContext<'Storage.DistributionBucketFamilyMetadataSet'>): Promise<void> {
   const family = await ec.collections.DistributionBucketFamily.getOrFail(familyId.toString(), {
@@ -360,7 +360,7 @@ export async function processDistributionBucketFamilyMetadataSetEvent({
 
 export async function processDistributionBucketFamilyDeletedEvent({
   ec,
-  event: { asV1000: familyId },
+  event: { asV3: familyId },
 }: EventHandlerContext<'Storage.DistributionBucketFamilyDeleted'>): Promise<void> {
   const family = await ec.collections.DistributionBucketFamily.getOrFail(familyId.toString(), {
     metadata: true,
@@ -376,7 +376,7 @@ export async function processDistributionBucketFamilyDeletedEvent({
 export async function processDistributionBucketCreatedEvent({
   ec,
   event: {
-    asV1000: [familyId, acceptingNewBags, bucketId],
+    asV3: [familyId, acceptingNewBags, bucketId],
   },
 }: EventHandlerContext<'Storage.DistributionBucketCreated'>): Promise<void> {
   ec.collections.DistributionBucket.push(
@@ -393,7 +393,7 @@ export async function processDistributionBucketCreatedEvent({
 export async function processDistributionBucketStatusUpdatedEvent({
   ec,
   event: {
-    asV1000: [bucketId, acceptingNewBags],
+    asV3: [bucketId, acceptingNewBags],
   },
 }: EventHandlerContext<'Storage.DistributionBucketStatusUpdated'>): Promise<void> {
   const bucket = await ec.collections.DistributionBucket.getOrFail(distributionBucketId(bucketId))
@@ -402,7 +402,7 @@ export async function processDistributionBucketStatusUpdatedEvent({
 
 export async function processDistributionBucketDeletedEvent({
   ec,
-  event: { asV1000: bucketId },
+  event: { asV3: bucketId },
 }: EventHandlerContext<'Storage.DistributionBucketDeleted'>): Promise<void> {
   const distributionBucket = await ec.collections.DistributionBucket.getOrFail(
     distributionBucketId(bucketId),
@@ -424,7 +424,7 @@ export async function processDistributionBucketDeletedEvent({
 export async function processDistributionBucketsUpdatedForBagEvent({
   ec,
   event: {
-    asV1000: [bagId, familyId, addedBucketsIndices, removedBucketsIndices],
+    asV3: [bagId, familyId, addedBucketsIndices, removedBucketsIndices],
   },
 }: EventHandlerContext<'Storage.DistributionBucketsUpdatedForBag'>): Promise<void> {
   await getOrCreateBag(ec, bagId)
@@ -453,7 +453,7 @@ export async function processDistributionBucketsUpdatedForBagEvent({
 export async function processDistributionBucketModeUpdatedEvent({
   ec,
   event: {
-    asV1000: [bucketId, distributing],
+    asV3: [bucketId, distributing],
   },
 }: EventHandlerContext<'Storage.DistributionBucketModeUpdated'>): Promise<void> {
   const bucket = await ec.collections.DistributionBucket.getOrFail(distributionBucketId(bucketId))
@@ -463,7 +463,7 @@ export async function processDistributionBucketModeUpdatedEvent({
 export function processDistributionBucketOperatorInvitedEvent({
   ec,
   event: {
-    asV1000: [bucketId, workerId],
+    asV3: [bucketId, workerId],
   },
 }: EventHandlerContext<'Storage.DistributionBucketOperatorInvited'>): void {
   const invitedOperator = new DistributionBucketOperator({
@@ -479,7 +479,7 @@ export function processDistributionBucketOperatorInvitedEvent({
 export async function processDistributionBucketInvitationCancelledEvent({
   ec,
   event: {
-    asV1000: [bucketId, workerId],
+    asV3: [bucketId, workerId],
   },
 }: EventHandlerContext<'Storage.DistributionBucketInvitationCancelled'>): Promise<void> {
   // Metadata should not exist, because the operator wasn't active
@@ -491,7 +491,7 @@ export async function processDistributionBucketInvitationCancelledEvent({
 export async function processDistributionBucketInvitationAcceptedEvent({
   ec,
   event: {
-    asV1000: [workerId, bucketId],
+    asV3: [workerId, bucketId],
   },
 }: EventHandlerContext<'Storage.DistributionBucketInvitationAccepted'>): Promise<void> {
   const operator = await ec.collections.DistributionBucketOperator.getOrFail(
@@ -503,7 +503,7 @@ export async function processDistributionBucketInvitationAcceptedEvent({
 export async function processDistributionBucketMetadataSetEvent({
   ec,
   event: {
-    asV1000: [workerId, bucketId, metadataBytes],
+    asV3: [workerId, bucketId, metadataBytes],
   },
 }: EventHandlerContext<'Storage.DistributionBucketMetadataSet'>): Promise<void> {
   const operator = await ec.collections.DistributionBucketOperator.getOrFail(
@@ -519,7 +519,7 @@ export async function processDistributionBucketMetadataSetEvent({
 export async function processDistributionBucketOperatorRemovedEvent({
   ec,
   event: {
-    asV1000: [bucketId, workerId],
+    asV3: [bucketId, workerId],
   },
 }: EventHandlerContext<'Storage.DistributionBucketOperatorRemoved'>): Promise<void> {
   const operator = await ec.collections.DistributionBucketOperator.getOrFail(

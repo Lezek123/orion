@@ -13,7 +13,7 @@ export function processNewMember({
   ec,
   block,
   event: {
-    asV1000: [memberId, params],
+    asV3: [memberId, params],
   },
 }: EventHandlerContext<
   | 'Members.MemberCreated'
@@ -41,7 +41,7 @@ export function processNewMember({
 export async function processMemberAccountsUpdatedEvent({
   ec,
   event: {
-    asV1000: [memberId, , newControllerAccount],
+    asV3: [memberId, , newControllerAccount],
   },
 }: EventHandlerContext<'Members.MemberAccountsUpdated'>) {
   if (newControllerAccount) {
@@ -53,7 +53,7 @@ export async function processMemberAccountsUpdatedEvent({
 export async function processMemberProfileUpdatedEvent({
   ec,
   event: {
-    asV1000: [memberId, newHandle, newMetadata],
+    asV3: [memberId, newHandle, newMetadata],
   },
 }: EventHandlerContext<'Members.MemberProfileUpdated'>) {
   const member = await ec.collections.Membership.getOrFail(memberId.toString(), { metadata: true })
@@ -76,7 +76,7 @@ export async function processMemberRemarkedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV1000: [memberId, message],
+    asV3: [memberId, message],
   },
 }: EventHandlerContext<'Members.MemberRemarked'>) {
   const metadata = deserializeMetadata(MemberRemarked, message)
