@@ -48,8 +48,7 @@ services:
         # (e.g. Moonbeam/Moonriver or Astar/Shiden)
       ]
     ports:
-      - '127.0.0.1:8888:8000'
-      - '[::1]:8888:8000'
+      - '8888:8000'
 
   # Explorer service is optional.
   # It provides rich GraphQL API for querying archived data.
