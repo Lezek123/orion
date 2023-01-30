@@ -3,6 +3,12 @@ import {
   Event,
   MetaprotocolTransactionResultFailed,
   MetaprotocolTransactionStatusEventData,
+  StorageDataObject,
+  DataObjectTypeChannelPayoutsPayload,
+  ChannelPayoutsUpdatedEventData,
+  ChannelRewardClaimedEventData,
+  ChannelRewardClaimedAndWithdrawnEventData,
+  ChannelFundsWithdrawnEventData,
 } from '../../model'
 import { deserializeMetadata, genericEventFields, toAddress } from '../utils'
 import {
@@ -12,6 +18,7 @@ import {
 } from '@joystream/metadata-protobuf'
 import { processChannelMetadata, processModeratorRemark, processOwnerRemark } from './metadata'
 import { EventHandlerContext } from '../../utils/events'
+import { parseContentActor } from './utils'
 
 export async function processChannelCreatedEvent({
   overlay,
@@ -106,7 +113,7 @@ export async function processChannelOwnerRemarkedEvent({
         errorMessage: 'Could not decode the metadata',
       })
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new MetaprotocolTransactionStatusEventData({
       result,
     }),
@@ -131,9 +138,114 @@ export async function processChannelAgentRemarkedEvent({
         errorMessage: 'Could not decode the metadata',
       })
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new MetaprotocolTransactionStatusEventData({
       result,
     }),
   })
 }
+
+// TODO: Ephesus scope
+// export async function processChannelPayoutsUpdatedEvent({
+//   overlay,
+//   block,
+//   indexInBlock,
+//   extrinsicHash,
+//   event: {
+//     asV3: [updateChannelPayoutParameters, dataObjectId],
+//   },
+// }: EventHandlerContext<'Content.ChannelPayoutsUpdated'>): Promise<void> {
+//   const payloadDataObject =
+//     dataObjectId !== undefined
+//       ? await overlay.getRepository(StorageDataObject).getByIdOrFail(dataObjectId.toString())
+//       : undefined
+
+//   if (payloadDataObject) {
+//     payloadDataObject.type = new DataObjectTypeChannelPayoutsPayload()
+//   }
+
+//   const { minCashoutAllowed, maxCashoutAllowed, channelCashoutsEnabled, commitment } =
+//     updateChannelPayoutParameters
+
+//   overlay.getRepository(Event).new({
+//     ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
+//     data: new ChannelPayoutsUpdatedEventData({
+//       commitment: commitment && `0x${Buffer.from(commitment).toString('hex')}`,
+//       minCashoutAllowed,
+//       maxCashoutAllowed,
+//       channelCashoutsEnabled,
+//       payloadDataObject: payloadDataObject?.id,
+//     }),
+//   })
+// }
+
+// export async function processChannelRewardUpdatedEvent({
+//   overlay,
+//   block,
+//   indexInBlock,
+//   extrinsicHash,
+//   event: {
+//     asV3: [, claimedAmount, channelId],
+//   },
+// }: EventHandlerContext<'Content.ChannelRewardUpdated'>): Promise<void> {
+//   // load channel
+//   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
+
+//   overlay.getRepository(Event).new({
+//     ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
+//     data: new ChannelRewardClaimedEventData({
+//       amount: claimedAmount,
+//       channel: channel.id,
+//     }),
+//   })
+
+//   channel.cumulativeRewardClaimed = (channel.cumulativeRewardClaimed || 0n) + claimedAmount
+// }
+
+// export async function processChannelRewardClaimedAndWithdrawnEvent({
+//   overlay,
+//   block,
+//   indexInBlock,
+//   extrinsicHash,
+//   event: {
+//     asV3: [actor, channelId, claimedAmount, destination],
+//   },
+// }: EventHandlerContext<'Content.ChannelRewardClaimedAndWithdrawn'>): Promise<void> {
+//   // load channel
+//   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
+
+//   overlay.getRepository(Event).new({
+//     ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
+//     data: new ChannelRewardClaimedAndWithdrawnEventData({
+//       amount: claimedAmount,
+//       channel: channel.id,
+//       account: destination.__kind === 'AccountId' ? toAddress(destination.value) : undefined,
+//       actor: parseContentActor(actor),
+//     }),
+//   })
+
+//   channel.cumulativeRewardClaimed = (channel.cumulativeRewardClaimed || 0n) + claimedAmount
+// }
+
+// export async function processChannelFundsWithdrawnEvent({
+//   overlay,
+//   block,
+//   indexInBlock,
+//   extrinsicHash,
+//   event: {
+//     asV3: [actor, channelId, amount, destination],
+//   },
+// }: EventHandlerContext<'Content.ChannelFundsWithdrawn'>): Promise<void> {
+//   // load channel
+//   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
+
+//   overlay.getRepository(Event).new({
+//     ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
+//     data: new ChannelFundsWithdrawnEventData({
+//       amount,
+//       channel: channel.id,
+//       account: destination.__kind === 'AccountId' ? toAddress(destination.value) : undefined,
+//       actor: parseContentActor(actor),
+//     }),
+//   })
+// }

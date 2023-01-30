@@ -86,13 +86,14 @@ export async function processMemberRemarkedEvent({
         extrinsicHash,
         memberId.toString(),
         metadata
+        // payment && [toAddress(payment[0]), payment[1]] // TODO: Ephesus scope
       )
     : new MetaprotocolTransactionResultFailed({
         errorMessage: 'Could not decode the metadata',
       })
   const eventRepository = overlay.getRepository(Event)
   eventRepository.new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new MetaprotocolTransactionStatusEventData({
       result,
     }),

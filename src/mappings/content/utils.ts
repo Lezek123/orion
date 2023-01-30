@@ -200,7 +200,7 @@ export function processNft(
 
   // Push a new NftIssued event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new NftIssuedEventData({
       actor: parseContentActor(issuer),
       nft: nft.id,

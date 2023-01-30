@@ -58,7 +58,7 @@ export async function processOpenAuctionStartedEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new OpenAuctionStartedEventData({
       actor: parseContentActor(contentActor),
       auction: auction.id,
@@ -88,7 +88,7 @@ export async function processEnglishAuctionStartedEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new EnglishAuctionStartedEventData({
       actor: parseContentActor(contentActor),
       auction: auction.id,
@@ -143,7 +143,7 @@ export async function processAuctionBidMadeEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new AuctionBidMadeEventData({
       bid: bid.id,
       nftOwner: nft.owner,
@@ -183,7 +183,7 @@ export async function processAuctionBidCanceledEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new AuctionBidCanceledEventData({
       bid: memberBid.id,
       member: memberId.toString(),
@@ -211,7 +211,7 @@ export async function processAuctionCanceledEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new AuctionCanceledEventData({
       actor: parseContentActor(contentActor),
       auction: auction.id,
@@ -249,7 +249,7 @@ export async function processEnglishAuctionSettledEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new EnglishAuctionSettledEventData({
       previousNftOwner,
       winningBid: winningBid.id,
@@ -289,7 +289,7 @@ export async function processBidMadeCompletingAuctionEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new BidMadeCompletingAuctionEventData({
       previousNftOwner,
       winningBid: bid.id,
@@ -323,7 +323,7 @@ export async function processOpenAuctionBidAcceptedEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new OpenAuctionBidAcceptedEventData({
       actor: parseContentActor(contentActor),
       previousNftOwner,
@@ -412,7 +412,7 @@ export async function processNftSellOrderMadeEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new NftSellOrderMadeEventData({
       actor: parseContentActor(contentActor),
       nft: nft.id,
@@ -449,7 +449,7 @@ export async function processNftBoughtEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new NftBoughtEventData({
       buyer: memberId.toString(),
       nft: nft.id,
@@ -476,7 +476,7 @@ export async function processBuyNowCanceledEvent({
 
   // add new event
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new BuyNowCanceledEventData({
       actor: parseContentActor(contentActor),
       nft: nft.id,
@@ -506,7 +506,7 @@ export async function processBuyNowPriceUpdatedEvent({
 
   nft.transactionalStatus = new TransactionalStatusBuyNow({ price: newPrice })
   overlay.getRepository(Event).new({
-    ...genericEventFields(block, indexInBlock, extrinsicHash),
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
     data: new BuyNowPriceUpdatedEventData({
       actor: parseContentActor(contentActor),
       newPrice,
