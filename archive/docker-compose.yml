@@ -23,7 +23,7 @@ services:
     image: subsquid/substrate-ingest:firesquid
     command: [
         '-e',
-        'wss://atlas-dev.joystream.org/ws-rpc',
+        '${WS_SOURCE}',
         '-c',
         '20', # allow up to 20 pending requests for the above endpoint (default is 5)
         #  "--start-block", "1000000", # uncomment to specify a non-zero start block

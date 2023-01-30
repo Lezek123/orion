@@ -24,7 +24,7 @@ export async function processChannelCreatedEvent({
   overlay,
   block,
   event: {
-    asV3: [
+    asV2000: [
       channelId,
       { owner, dataObjects, channelStateBloatBond },
       channelCreationParameters,
@@ -57,7 +57,7 @@ export async function processChannelUpdatedEvent({
   overlay,
   block,
   event: {
-    asV3: [, channelId, channelUpdateParameters, newDataObjects],
+    asV2000: [, channelId, channelUpdateParameters, newDataObjects],
   },
 }: EventHandlerContext<'Content.ChannelUpdated'>) {
   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
@@ -71,7 +71,7 @@ export async function processChannelUpdatedEvent({
 
 export async function processChannelDeletedEvent({
   overlay,
-  event: { asV3: channelId },
+  event: { asV2000: channelId },
 }: EventHandlerContext<'Content.ChannelDeleted'>): Promise<void> {
   overlay.getRepository(Channel).remove(channelId.toString())
 }
@@ -79,7 +79,7 @@ export async function processChannelDeletedEvent({
 export async function processChannelDeletedByModeratorEvent({
   overlay,
   event: {
-    asV3: [, channelId],
+    asV2000: [, channelId],
   },
 }: EventHandlerContext<'Content.ChannelDeletedByModerator'>): Promise<void> {
   overlay.getRepository(Channel).remove(channelId.toString())
@@ -88,7 +88,7 @@ export async function processChannelDeletedByModeratorEvent({
 export async function processChannelVisibilitySetByModeratorEvent({
   overlay,
   event: {
-    asV3: [, channelId, isHidden],
+    asV2000: [, channelId, isHidden],
   },
 }: EventHandlerContext<'Content.ChannelVisibilitySetByModerator'>): Promise<void> {
   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
@@ -101,7 +101,7 @@ export async function processChannelOwnerRemarkedEvent({
   extrinsicHash,
   overlay,
   event: {
-    asV3: [channelId, messageBytes],
+    asV2000: [channelId, messageBytes],
   },
 }: EventHandlerContext<'Content.ChannelOwnerRemarked'>): Promise<void> {
   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
@@ -126,7 +126,7 @@ export async function processChannelAgentRemarkedEvent({
   indexInBlock,
   extrinsicHash,
   event: {
-    asV3: [, channelId, messageBytes],
+    asV2000: [, channelId, messageBytes],
   },
 }: EventHandlerContext<'Content.ChannelAgentRemarked'>): Promise<void> {
   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
@@ -145,107 +145,108 @@ export async function processChannelAgentRemarkedEvent({
   })
 }
 
-// TODO: Ephesus scope
-// export async function processChannelPayoutsUpdatedEvent({
-//   overlay,
-//   block,
-//   indexInBlock,
-//   extrinsicHash,
-//   event: {
-//     asV3: [updateChannelPayoutParameters, dataObjectId],
-//   },
-// }: EventHandlerContext<'Content.ChannelPayoutsUpdated'>): Promise<void> {
-//   const payloadDataObject =
-//     dataObjectId !== undefined
-//       ? await overlay.getRepository(StorageDataObject).getByIdOrFail(dataObjectId.toString())
-//       : undefined
+export async function processChannelPayoutsUpdatedEvent({
+  overlay,
+  block,
+  indexInBlock,
+  extrinsicHash,
+  event: {
+    asV2000: [updateChannelPayoutParameters, dataObjectId],
+  },
+}: EventHandlerContext<'Content.ChannelPayoutsUpdated'>): Promise<void> {
+  const payloadDataObject =
+    dataObjectId !== undefined
+      ? await overlay.getRepository(StorageDataObject).getByIdOrFail(dataObjectId.toString())
+      : undefined
 
-//   if (payloadDataObject) {
-//     payloadDataObject.type = new DataObjectTypeChannelPayoutsPayload()
-//   }
+  if (payloadDataObject) {
+    payloadDataObject.type = new DataObjectTypeChannelPayoutsPayload()
+  }
 
-//   const { minCashoutAllowed, maxCashoutAllowed, channelCashoutsEnabled, commitment } =
-//     updateChannelPayoutParameters
+  const { minCashoutAllowed, maxCashoutAllowed, channelCashoutsEnabled, commitment } =
+    updateChannelPayoutParameters
 
-//   overlay.getRepository(Event).new({
-//     ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
-//     data: new ChannelPayoutsUpdatedEventData({
-//       commitment: commitment && `0x${Buffer.from(commitment).toString('hex')}`,
-//       minCashoutAllowed,
-//       maxCashoutAllowed,
-//       channelCashoutsEnabled,
-//       payloadDataObject: payloadDataObject?.id,
-//     }),
-//   })
-// }
+  overlay.getRepository(Event).new({
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
+    data: new ChannelPayoutsUpdatedEventData({
+      commitment: commitment && `0x${Buffer.from(commitment).toString('hex')}`,
+      minCashoutAllowed,
+      maxCashoutAllowed,
+      channelCashoutsEnabled,
+      payloadDataObject: payloadDataObject?.id,
+    }),
+  })
+}
 
-// export async function processChannelRewardUpdatedEvent({
-//   overlay,
-//   block,
-//   indexInBlock,
-//   extrinsicHash,
-//   event: {
-//     asV3: [, claimedAmount, channelId],
-//   },
-// }: EventHandlerContext<'Content.ChannelRewardUpdated'>): Promise<void> {
-//   // load channel
-//   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
+export async function processChannelRewardUpdatedEvent({
+  overlay,
+  block,
+  indexInBlock,
+  extrinsicHash,
+  event: {
+    // FIXME: Workaround for lack of `claimedAmount`
+    asV2000: [cumulativeRewardEarned, channelId],
+  },
+}: EventHandlerContext<'Content.ChannelRewardUpdated'>): Promise<void> {
+  // load channel
+  const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
+  const claimedAmount = cumulativeRewardEarned - (channel.cumulativeRewardClaimed || 0n)
 
-//   overlay.getRepository(Event).new({
-//     ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
-//     data: new ChannelRewardClaimedEventData({
-//       amount: claimedAmount,
-//       channel: channel.id,
-//     }),
-//   })
+  overlay.getRepository(Event).new({
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
+    data: new ChannelRewardClaimedEventData({
+      amount: claimedAmount,
+      channel: channel.id,
+    }),
+  })
 
-//   channel.cumulativeRewardClaimed = (channel.cumulativeRewardClaimed || 0n) + claimedAmount
-// }
+  channel.cumulativeRewardClaimed = (channel.cumulativeRewardClaimed || 0n) + claimedAmount
+}
 
-// export async function processChannelRewardClaimedAndWithdrawnEvent({
-//   overlay,
-//   block,
-//   indexInBlock,
-//   extrinsicHash,
-//   event: {
-//     asV3: [actor, channelId, claimedAmount, destination],
-//   },
-// }: EventHandlerContext<'Content.ChannelRewardClaimedAndWithdrawn'>): Promise<void> {
-//   // load channel
-//   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
+export async function processChannelRewardClaimedAndWithdrawnEvent({
+  overlay,
+  block,
+  indexInBlock,
+  extrinsicHash,
+  event: {
+    asV2000: [actor, channelId, claimedAmount, destination],
+  },
+}: EventHandlerContext<'Content.ChannelRewardClaimedAndWithdrawn'>): Promise<void> {
+  // load channel
+  const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
 
-//   overlay.getRepository(Event).new({
-//     ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
-//     data: new ChannelRewardClaimedAndWithdrawnEventData({
-//       amount: claimedAmount,
-//       channel: channel.id,
-//       account: destination.__kind === 'AccountId' ? toAddress(destination.value) : undefined,
-//       actor: parseContentActor(actor),
-//     }),
-//   })
+  overlay.getRepository(Event).new({
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
+    data: new ChannelRewardClaimedAndWithdrawnEventData({
+      amount: claimedAmount,
+      channel: channel.id,
+      account: destination.__kind === 'AccountId' ? toAddress(destination.value) : undefined,
+      actor: parseContentActor(actor),
+    }),
+  })
 
-//   channel.cumulativeRewardClaimed = (channel.cumulativeRewardClaimed || 0n) + claimedAmount
-// }
+  channel.cumulativeRewardClaimed = (channel.cumulativeRewardClaimed || 0n) + claimedAmount
+}
 
-// export async function processChannelFundsWithdrawnEvent({
-//   overlay,
-//   block,
-//   indexInBlock,
-//   extrinsicHash,
-//   event: {
-//     asV3: [actor, channelId, amount, destination],
-//   },
-// }: EventHandlerContext<'Content.ChannelFundsWithdrawn'>): Promise<void> {
-//   // load channel
-//   const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
+export async function processChannelFundsWithdrawnEvent({
+  overlay,
+  block,
+  indexInBlock,
+  extrinsicHash,
+  event: {
+    asV2000: [actor, channelId, amount, destination],
+  },
+}: EventHandlerContext<'Content.ChannelFundsWithdrawn'>): Promise<void> {
+  // load channel
+  const channel = await overlay.getRepository(Channel).getByIdOrFail(channelId.toString())
 
-//   overlay.getRepository(Event).new({
-//     ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
-//     data: new ChannelFundsWithdrawnEventData({
-//       amount,
-//       channel: channel.id,
-//       account: destination.__kind === 'AccountId' ? toAddress(destination.value) : undefined,
-//       actor: parseContentActor(actor),
-//     }),
-//   })
-// }
+  overlay.getRepository(Event).new({
+    ...genericEventFields(overlay, block, indexInBlock, extrinsicHash),
+    data: new ChannelFundsWithdrawnEventData({
+      amount,
+      channel: channel.id,
+      account: destination.__kind === 'AccountId' ? toAddress(destination.value) : undefined,
+      actor: parseContentActor(actor),
+    }),
+  })
+}
