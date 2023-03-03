@@ -27,7 +27,7 @@ import {
 } from '../../model'
 import { invalidMetadata } from '../utils'
 import { EntityManagerOverlay, Flat } from '../../utils/overlay'
-import { Logger } from '../../logger'
+import { Logger } from '../logger'
 import _ from 'lodash'
 
 export const protobufContinentToGraphlContinent: {

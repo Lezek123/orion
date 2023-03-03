@@ -7,12 +7,13 @@ import {
   DistributionBucketOperatorStatus,
 } from '../../../model'
 import _ from 'lodash'
-import { getEm } from '../../orm'
+import { getEm } from '../../../utils/orm'
 import { performance } from 'perf_hooks'
 import urljoin from 'url-join'
 import { Context } from '@subsquid/openreader/lib/context'
 import haversineDistance from 'haversine-distance'
 import { createLogger, Logger } from '@subsquid/logger'
+import { DISTRIBUTION_BUCKETS_BAGS_KEY, getRedis, RedisClient } from '../../../utils/redis'
 
 const rootLogger = createLogger('api:assets')
 
@@ -36,6 +37,7 @@ class DistributionBucketsCache {
   protected bucketIdsByBagId: DistributionBucketIdsByBagId
   protected bucketsById: BucketsById
   protected em: EntityManager
+  protected redis: RedisClient
   protected logger: Logger
 
   constructor() {
@@ -64,6 +66,7 @@ class DistributionBucketsCache {
 
   private async updateLoop(intervalMs: number): Promise<void> {
     this.em = await getEm()
+    this.redis = await getRedis()
     while (true) {
       try {
         this.logger.debug('Reloading distribution buckets and bags cache data...')
@@ -113,11 +116,13 @@ class DistributionBucketsCache {
     const bucketIdsByBagId: DistributionBucketIdsByBagId = new Map()
     const bucketsById: BucketsById = new Map()
 
-    // We use .query() here instead of .find() for improved performance
     const bagToBucketsStart = performance.now()
-    const bagToBuckets: { distribution_bucket_id: string; bag_id: string }[] = await this.em.query(
-      'SELECT distribution_bucket_id, bag_id FROM distribution_bucket_bag'
-    )
+    const bagToBuckets: { distributionBucketId: string; bagId: string }[] = (
+      await this.redis.sMembers(DISTRIBUTION_BUCKETS_BAGS_KEY)
+    ).map((id) => {
+      const [distributionBucketId, bagId] = id.split('-')
+      return { distributionBucketId, bagId }
+    })
     this.logger.debug(
       `Found ${bagToBuckets.length} bucket-to-bag connections (took: ${(
         performance.now() - bagToBucketsStart
@@ -150,7 +155,7 @@ class DistributionBucketsCache {
       ).toFixed(2)}ms)`
     )
 
-    for (const { bag_id: bagId, distribution_bucket_id: distributionBucketId } of bagToBuckets) {
+    for (const { bagId, distributionBucketId } of bagToBuckets) {
       const distributionBucket = distributionBuckets.find((b) => b.id === distributionBucketId)
       if (distributionBucket && distributionBucketId && bagId) {
         // Update DistributionBucketIdsByBagId

@@ -1,6 +1,19 @@
 version: '3'
 
 services:
+  orion_cache:
+    container_name: orion_cache
+    hostname: orion_cache
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${REDIS_PORT}:${REDIS_PORT}'
+      - '[::1]:${REDIS_PORT}:${REDIS_PORT}'
+    command: ['redis-server', '--port', '${REDIS_PORT}']
+    volumes:
+      - ./db/redis.conf:/usr/local/etc/redis/redis.conf
+
+
   orion_db:
     container_name: orion_db
     hostname: orion_db

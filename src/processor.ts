@@ -5,7 +5,7 @@ import {
   SubstrateBlock,
 } from '@subsquid/substrate-processor'
 import { Store, TypeormDatabase } from '@subsquid/typeorm-store'
-import { Logger } from './logger'
+import { Logger } from './mappings/logger'
 import {
   processStorageBucketCreatedEvent,
   processStorageBucketInvitationAcceptedEvent,
@@ -84,6 +84,10 @@ import { Event } from './types/support'
 import { assertAssignable } from './utils/misc'
 import { EntityManagerOverlay } from './utils/overlay'
 import { EventNames, EventHandler, eventConstructors, EventInstance } from './utils/events'
+import { getRedis, DISTRIBUTION_BUCKETS_BAGS_KEY, RedisClient, RedisMulti } from './utils/redis'
+import { DistributionBucketBag } from './model'
+import { getEm } from './utils/orm'
+import { createLogger } from '@subsquid/logger'
 
 const defaultEventOptions = {
   data: {
@@ -253,43 +257,74 @@ async function processEvent<EventName extends EventNames>(
   indexInBlock: number,
   extrinsicHash: string | undefined,
   rawEvent: Event,
-  overlay: EntityManagerOverlay
+  overlay: EntityManagerOverlay,
+  redis: RedisMulti
 ) {
   const eventHandler: EventHandler<EventName> = eventHandlers[name]
   const EventConstructor = eventConstructors[name]
   const event = new EventConstructor(ctx, rawEvent) as EventInstance<EventName>
-  await eventHandler({ block, overlay, event, indexInBlock, extrinsicHash })
+  await eventHandler({ block, overlay, redis, event, indexInBlock, extrinsicHash })
 }
 
-processor.run(new TypeormDatabase({ isolationLevel: 'READ COMMITTED' }), async (ctx) => {
-  Logger.set(ctx.log)
+export const redisLogger = createLogger(`sqd:processor:redis`)
+export async function initRedis() {
+  redisLogger.info('Initializing Redis cache...')
+  const client = await getRedis()
+  const em = await getEm()
+  const distributionBucketBags: { id: string }[] = await em.find(DistributionBucketBag, { select: { id: true } })
 
-  const overlay = await EntityManagerOverlay.create(ctx.store)
+  const multi = await client.multi()
+  await Promise.all(distributionBucketBags.map(async ({ id }) =>
+    multi.sAdd(DISTRIBUTION_BUCKETS_BAGS_KEY, id)
+  ))
+  await multi.exec()
 
-  for (const block of ctx.blocks) {
-    for (const item of block.items) {
-      if (item.name !== '*') {
-        ctx.log.info(`Processing ${item.name} event in block ${block.header.height}...`)
-        await processEvent(
-          ctx,
-          item.name,
-          block.header,
-          item.event.indexInBlock,
-          item.event.extrinsic?.hash,
-          item.event,
-          overlay
-        )
-        // Update database if the number of cached entities exceeded MAX_CACHED_ENTITIES
-        if (overlay.totalCacheSize() > maxCachedEntities) {
-          ctx.log.info(
-            `Max memory cache size of ${maxCachedEntities} exceeded, updating database...`
+  redisLogger.info(
+    `Redis cache initialized (found ${distributionBucketBags.length} distribution-bucket-bag relations)`
+  )
+
+  return client
+}
+
+async function main() {
+  const redis = await initRedis()
+  processor.run(new TypeormDatabase({ isolationLevel: 'READ COMMITTED' }), async (ctx) => {
+    Logger.set(ctx.log)
+
+    const overlay = await EntityManagerOverlay.create(ctx.store)
+
+    const redisTx = await redis.multi()
+    for (const block of ctx.blocks) {
+      for (const item of block.items) {
+        if (item.name !== '*') {
+          ctx.log.info(`Processing ${item.name} event in block ${block.header.height}...`)
+          await processEvent(
+            ctx,
+            item.name,
+            block.header,
+            item.event.indexInBlock,
+            item.event.extrinsic?.hash,
+            item.event,
+            overlay,
+            redisTx
           )
-          await overlay.updateDatabase()
+          // Update database if the number of cached entities exceeded MAX_CACHED_ENTITIES
+          if (overlay.totalCacheSize() > maxCachedEntities) {
+            ctx.log.info(
+              `Max memory cache size of ${maxCachedEntities} exceeded, updating database...`
+            )
+            await overlay.updateDatabase()
+          }
         }
       }
     }
-  }
 
-  ctx.log.info(`Saving database updates...`)
-  await overlay.updateDatabase()
-})
+    redisLogger.info('Commiting redis state...')
+    await redisTx.exec()
+
+    ctx.log.info(`Saving database updates...`)
+    await overlay.updateDatabase()
+  })
+}
+
+main().then(() => { /* Do nothing */ }).catch(console.error)

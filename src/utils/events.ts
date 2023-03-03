@@ -1,4 +1,5 @@
 import { SubstrateBlock } from '@subsquid/substrate-processor'
+import { RedisMulti } from './redis'
 import {
   ContentVideoCreatedEvent,
   ContentVideoUpdatedEvent,
@@ -147,6 +148,7 @@ export type EventInstance<EventName extends EventNames> = InstanceType<EventCons
 
 export type EventHandlerContext<EventName extends EventNames> = {
   overlay: EntityManagerOverlay
+  redis: RedisMulti
   block: SubstrateBlock
   indexInBlock: number
   extrinsicHash?: string

@@ -74,11 +74,13 @@ export function getStaticBagOwner(bagId: StaticBagId): StorageBagOwner {
   criticalError(`Unexpected static bag type`, { bagId })
 }
 
-export function distributionBucketId({
-  distributionBucketFamilyId: familyId,
-  distributionBucketIndex: bucketIndex,
-}: DistributionBucketIdRecord): string {
-  return `${familyId.toString()}:${bucketIndex.toString()}`
+export function distributionBucketId(
+  bucketIdParts: DistributionBucketIdRecord | { familyId: bigint; index: bigint }
+): string {
+  if ('familyId' in bucketIdParts) {
+    return `${bucketIdParts.familyId.toString()}:${bucketIdParts.index.toString()}`
+  }
+  return `${bucketIdParts.distributionBucketFamilyId.toString()}:${bucketIdParts.distributionBucketIndex.toString()}`
 }
 
 export function distributionOperatorId(
@@ -101,7 +103,7 @@ export function storageBucketBagData(
 }
 
 export function distributionBucketBagData(
-  bucketId: DistributionBucketIdRecord | string,
+  bucketId: DistributionBucketIdRecord | { familyId: bigint; index: bigint } | string,
   bagId: BagIdType | string
 ): { id: string; distributionBucketId: string; bagId: string } {
   bucketId = typeof bucketId === 'string' ? bucketId : distributionBucketId(bucketId)
@@ -111,6 +113,14 @@ export function distributionBucketBagData(
     distributionBucketId: bucketId,
     bagId,
   }
+}
+
+export function distributionBucketBagId(familyId: bigint, index: bigint, bagId: BagIdType) {
+  const bucketId = distributionBucketId({
+    distributionBucketFamilyId: familyId,
+    distributionBucketIndex: index,
+  })
+  return `${bucketId}-${getBagId(bagId)}`
 }
 
 export function createDataObjects(

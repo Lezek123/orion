@@ -1,6 +1,6 @@
 import { metaToObject } from '@joystream/metadata-protobuf/utils'
 import { AnyMetadataClass, DecodedMetadataObject } from '@joystream/metadata-protobuf/types'
-import { Logger } from '../logger'
+import { Logger } from './logger'
 import { SubstrateBlock } from '@subsquid/substrate-processor'
 import {
   Event,

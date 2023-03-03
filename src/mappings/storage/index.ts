@@ -39,6 +39,7 @@ import {
   processDistributionOperatorMetadata,
   processStorageOperatorMetadata,
 } from './metadata'
+import { DISTRIBUTION_BUCKETS_BAGS_KEY } from '../../utils/redis'
 
 // STORAGE BUCKET EVENTS
 
@@ -199,6 +200,7 @@ export async function processStorageBucketDeletedEvent({
 
 export async function processDynamicBagCreatedEvent({
   overlay,
+  redis,
   block,
   event: {
     asV1000: [
@@ -221,8 +223,12 @@ export async function processDynamicBagCreatedEvent({
   storageBuckets.map((id) =>
     overlay.getRepository(StorageBucketBag).new(storageBucketBagData(id, bag.id))
   )
-  distributionBuckets.map((id) =>
-    overlay.getRepository(DistributionBucketBag).new(distributionBucketBagData(id, bag.id))
+  await Promise.all(
+    distributionBuckets.map(async (id) => {
+      const distributionBucketBag = distributionBucketBagData(id, bag.id)
+      overlay.getRepository(DistributionBucketBag).new(distributionBucketBag)
+      await redis.sAdd(DISTRIBUTION_BUCKETS_BAGS_KEY, distributionBucketBag.id)
+    })
   )
   const dataObjectRepository = overlay.getRepository(StorageDataObject)
   createDataObjects(
@@ -237,6 +243,7 @@ export async function processDynamicBagCreatedEvent({
 
 export async function processDynamicBagDeletedEvent({
   overlay,
+  redis,
   event: { asV1000: bagId },
 }: EventHandlerContext<'Storage.DynamicBagDeleted'>): Promise<void> {
   const dynBagId = getDynamicBagId(bagId)
@@ -251,6 +258,9 @@ export async function processDynamicBagDeletedEvent({
     .getManyByRelation('storageBagId', dynBagId)
   overlay.getRepository(StorageBucketBag).remove(...bagStorageBucketRelations)
   overlay.getRepository(DistributionBucketBag).remove(...bagDistributionBucketRelations)
+  await Promise.all(
+    bagDistributionBucketRelations.map(({ id }) => redis.sRem(DISTRIBUTION_BUCKETS_BAGS_KEY, id))
+  )
   await deleteDataObjects(overlay, objects)
   overlay.getRepository(StorageBag).remove(dynBagId)
 }
@@ -407,32 +417,26 @@ export async function processDistributionBucketDeletedEvent({
 
 export async function processDistributionBucketsUpdatedForBagEvent({
   overlay,
+  redis,
   event: {
     asV1000: [bagId, familyId, addedBucketsIndices, removedBucketsIndices],
   },
 }: EventHandlerContext<'Storage.DistributionBucketsUpdatedForBag'>): Promise<void> {
   await getOrCreateBag(overlay, bagId)
-  overlay.getRepository(DistributionBucketBag).remove(
-    ...removedBucketsIndices.map((index) =>
-      distributionBucketBagData(
-        {
-          distributionBucketFamilyId: familyId,
-          distributionBucketIndex: index,
-        },
-        bagId
-      )
-    )
+  const distributionBucketBagRepository = overlay.getRepository(DistributionBucketBag)
+  await Promise.all(
+    removedBucketsIndices.map(async (index) => {
+      const bucketBag = distributionBucketBagData({ familyId, index }, bagId)
+      distributionBucketBagRepository.remove(bucketBag)
+      await redis.sRem(DISTRIBUTION_BUCKETS_BAGS_KEY, bucketBag.id)
+    })
   )
-  addedBucketsIndices.forEach((index) =>
-    overlay.getRepository(DistributionBucketBag).new(
-      distributionBucketBagData(
-        {
-          distributionBucketFamilyId: familyId,
-          distributionBucketIndex: index,
-        },
-        bagId
-      )
-    )
+  await Promise.all(
+    addedBucketsIndices.map(async (index) => {
+      const bucketBag = distributionBucketBagData({ familyId, index }, bagId)
+      distributionBucketBagRepository.new(bucketBag)
+      await redis.sAdd(DISTRIBUTION_BUCKETS_BAGS_KEY, bucketBag.id)
+    })
   )
 }
 

@@ -8,7 +8,7 @@ import { EntityManager, FindOptionsWhere, In, Not, Repository } from 'typeorm'
 import _, { isObject } from 'lodash'
 import { NextEntityId } from '../model/NextEntityId'
 import { criticalError } from './misc'
-import { Logger } from '../logger'
+import { Logger } from '../mappings/logger'
 
 // A stub which can represent any entity type
 export type AnyEntity = { id: string }
